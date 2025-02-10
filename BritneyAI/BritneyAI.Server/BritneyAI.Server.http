@@ -1,0 +1,6 @@
+@BritneyAI.Server_HostAddress = http://localhost:5155
+
+GET {{BritneyAI.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
