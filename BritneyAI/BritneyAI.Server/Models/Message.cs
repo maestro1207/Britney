@@ -4,8 +4,8 @@
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid ConversationId { get; set; }
-        public required Conversation Conversation { get; set; }
         public required string Content { get; set; }
+        public MessageType MessageType { get; set; } = MessageType.Text;
         public SenderType Sender { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public RatingValue Rating { get; set; } = RatingValue.Neutral;
@@ -22,5 +22,13 @@
         Neutral,
         Down,
         Up
+    }
+
+    public enum MessageType
+    {
+        Text,
+        Image,
+        File,
+        Event
     }
 }
