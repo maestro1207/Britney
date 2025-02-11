@@ -24,6 +24,7 @@
     "@angular/platform-browser-dynamic": "^19.1.0",
     "@angular/router": "^19.1.0",
     "@microsoft/signalr": "^8.0.7",
+    "bootstrap": "^5.3.3",
     "jest-editor-support": "*",
     "material": "^0.9.22",
     "run-script-os": "*",

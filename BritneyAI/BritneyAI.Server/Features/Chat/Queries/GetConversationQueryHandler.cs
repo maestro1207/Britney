@@ -19,7 +19,7 @@ namespace BritneyAI.Server.Features.Chat.Queries
         public async Task<Conversation> Handle(GetConversationQuery request, CancellationToken cancellationToken)
         {
             var conversation = await this.context.Conversations
-                .Include(c => c.Messages)
+                .Include(c => c.Messages.OrderBy(m=> m.CreatedAt))
                 .FirstOrDefaultAsync(c => c.Id == request.ConversationId, cancellationToken);
 
             if (conversation is null)

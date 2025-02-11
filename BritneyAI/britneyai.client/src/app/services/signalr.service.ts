@@ -30,6 +30,10 @@ export class SignalrService {
       .catch(() => {});
 
     this.hubConnection.on('ReceiveMessage', (message: MessageDto) => {
+      if (message.conversationId !== localStorage.getItem('conversationId')) {
+        return;
+      }
+
       this.updateMessageList(message);
     });
   }
@@ -51,7 +55,6 @@ export class SignalrService {
   }
 
   cancelConnection(conversationId: string): void {
-    if (!this.hubConnection) return;
     this.hubConnection
       .invoke('CancelMessageGeneration', conversationId)
       .catch((err) => console.error('cancel fail', err));

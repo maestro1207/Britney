@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 export interface Message {
   id: string;
   content: string;
-  sender: string;
+  sender: number;
   rating?: number;
   createdAt: string;
 }
@@ -39,5 +39,11 @@ export class ChatService {
     return this.http.post<void>(`${this.baseUrl}/messages/${messageId}/rate`, {
       rating,
     });
+  }
+
+  getConversation(conversationId: string): Observable<Conversation> {
+    return this.http.get<Conversation>(
+      `${this.baseUrl}/conversations/${conversationId}`
+    );
   }
 }

@@ -1,4 +1,5 @@
 ﻿using BritneyAI.Server.Features.Chat.Commands;
+using BritneyAI.Server.Features.Chat.Queries;
 using BritneyAI.Server.Features.Chat.Requests;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -37,6 +38,19 @@ namespace BritneyAI.Server.Controllers
             return Ok(response);
         }
 
+        [HttpGet("conversations/{conversationId}")]
+        public async Task<IActionResult> GetConversation(Guid conversationId)
+        {
+            var query = new GetConversationQuery { ConversationId = conversationId };
+            var conversation = await _mediator.Send(query);
+
+            if (conversation == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(conversation);
+        }
 
         [HttpPost("messages/{messageId}/rate")]
         public async Task<IActionResult> RateMessage(Guid messageId, [FromBody] RateMessageRequest request)

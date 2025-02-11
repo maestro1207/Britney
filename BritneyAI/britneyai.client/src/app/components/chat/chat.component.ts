@@ -8,7 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { ChatService } from '../../services/chat.service';
-import { SignalrService } from '../../services/signalr.service';
+import { MessageDto, SignalrService } from '../../services/signalr.service';
 
 @Component({
   selector: 'app-chat',
@@ -30,27 +30,48 @@ export class ChatComponent implements OnInit, OnDestroy {
   private chatService = inject(ChatService);
   private signalRService = inject(SignalrService);
 
-  conversationId = signal<string | null>(null);
+  conversationId = signal<string | null>(
+    localStorage.getItem('conversationId')
+  );
+
   messageInput = signal<string>('');
   canCancel = signal<boolean>(false);
   messages = this.signalRService.messages;
 
   ngOnInit(): void {
     this.signalRService.startConnection();
+
+    if (this.conversationId()) {
+      this.fetchMessages();
+    }
   }
 
-  createConversation(): void {
-    this.chatService.createConversation().subscribe({
+  fetchMessages(): void {
+    this.chatService.getConversation(this.conversationId()!).subscribe({
       next: (conv) => {
-        this.signalRService.cancelConnection(conv.id);
-        this.conversationId.set(conv.id);
-
-        this.messages.set([]);
-        this.signalRService.startConnection();
+        const messagesDto: MessageDto[] = conv.messages.map((msg) => ({
+          ...msg,
+          conversationId: conv.id,
+          sender: msg.sender === 0 ? 'User' : 'Bot',
+          rating: msg.rating ?? 0,
+        }));
+        this.messages.set(messagesDto);
+        console.log('this.messages', this.messages());
       },
     });
   }
 
+  createConversation(): void {
+    this.cancelMessage();
+    this.chatService.createConversation().subscribe({
+      next: (conv) => {
+        this.conversationId.set(conv.id);
+        localStorage.setItem('conversationId', conv.id);
+
+        this.messages.set([]);
+      },
+    });
+  }
   sendMessage(): void {
     if (!this.conversationId() || !this.messageInput().trim()) return;
     this.canCancel.set(true);
@@ -85,7 +106,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.conversationId) {
+    if (this.conversationId()) {
       this.signalRService.cancelConnection(this.conversationId()!);
     }
   }
