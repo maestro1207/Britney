@@ -1,0 +1,43 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Czat</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <div *ngIf="!conversationId()">
+      <button mat-raised-button color="primary" (click)="createConversation()">
+        Utwórz konwersację
+      </button>
+    </div>
+    <div *ngIf="conversationId()">
+      <p>Conversation ID: {{ conversationId() }}</p>
+      <div *ngFor="let msg of messages()">
+        <p>
+          <strong>{{ msg.sender }} :</strong>
+          <span>{{ msg.content }}</span>
+          <ng-container *ngIf="msg.sender === 'Bot' && msg.rating !== 0">
+            <span 
+              [matBadge]="msg.rating === 2 ? '👍' : (msg.rating === 1 ? '👎' : '')"
+              matBadgeColor="accent"
+              matBadgePosition="after">
+            </span>
+          </ng-container>
+        </p>
+        <div *ngIf="msg.sender === 'Bot'">
+          <button mat-icon-button (click)="rateMessgae(msg.id, 2)">👍</button>
+          <button mat-icon-button (click)="rateMessgae(msg.id, 1)">👎</button>
+        </div>
+      </div>
+    </div>
+  </mat-card-content>
+  <mat-card-actions *ngIf="conversationId()">
+    <mat-form-field >
+      <input  (ngModelChange)="messageInput.set($event)" matInput placeholder="Wpisz wiadomość" [ngModel]="messageInput()" />
+    </mat-form-field>
+    <button mat-raised-button color="accent" *ngIf="!canCancel()" (click)="sendMessage()">
+      Wyślij
+    </button>
+    <button mat-raised-button color="accent" *ngIf="canCancel()" (click)="cancelMessage()">
+      Anuluj
+    </button>
+  </mat-card-actions>
+</mat-card>

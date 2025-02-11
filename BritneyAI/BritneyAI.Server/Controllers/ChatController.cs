@@ -1,6 +1,4 @@
-﻿using Azure.Core;
-using BritneyAI.Server.Features.Chat.Commands;
-using BritneyAI.Server.Features.Chat.Queries;
+﻿using BritneyAI.Server.Features.Chat.Commands;
 using BritneyAI.Server.Features.Chat.Requests;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -11,34 +9,17 @@ namespace BritneyAI.Server.Controllers
     [ApiController]
     public class ChatController : ControllerBase
     {
-        private readonly IMediator mediator;
-
+        private readonly IMediator _mediator;
         public ChatController(IMediator mediator)
         {
-            this.mediator = mediator;
+            _mediator = mediator;
         }
 
         [HttpPost("conversations")]
         public async Task<IActionResult> CreateConversation()
         {
-            var command = new CreateConversationCommand();
-            var conversation = await this.mediator.Send(command);
-            return CreatedAtAction(nameof(GetConversation), new { conversationId = conversation.Id }, conversation);
-        }
-
-
-        [HttpGet("conversations/{conversationId}")]
-        public async Task<IActionResult> GetConversation(Guid conversationId)
-        {
-            var query = new GetConversationQuery { ConversationId = conversationId };
-            var conversation = await this.mediator.Send(query);
-
-            if (conversation == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(conversation);
+            var response = await _mediator.Send(new CreateConversationCommand());
+            return Ok(response);
         }
 
         [HttpPost("conversations/{conversationId}/messages")]
@@ -51,9 +32,25 @@ namespace BritneyAI.Server.Controllers
                 Sender = request.Sender
             };
 
-            var response = await this.mediator.Send(command);
+            var response = await _mediator.Send(command);
+
             return Ok(response);
         }
 
+
+        [HttpPost("messages/{messageId}/rate")]
+        public async Task<IActionResult> RateMessage(Guid messageId, [FromBody] RateMessageRequest request)
+        {
+            var command = new RateMessageCommand
+            {
+                MessageId = messageId,
+                Rating = request.Rating
+            };
+
+            var response = await _mediator.Send(command);
+            return response != null ? Ok(response) : NotFound();
+        }
     }
 }
+
+
