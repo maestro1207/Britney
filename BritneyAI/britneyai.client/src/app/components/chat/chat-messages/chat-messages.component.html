@@ -1,0 +1,11 @@
+<div
+  *ngIf="messages && messages.length"
+  class="d-flex flex-column p-2 border rounded"
+>
+  <app-chat-message-item
+    *ngFor="let msg of messages"
+    [message]="msg"
+    (rate)="onRate($event)"
+  >
+  </app-chat-message-item>
+</div>

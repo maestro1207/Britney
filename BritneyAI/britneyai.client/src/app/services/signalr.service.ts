@@ -54,9 +54,13 @@ export class SignalrService {
     });
   }
 
+  initMessageHandler(messageCallback: (message: MessageDto) => void): void {
+    this.hubConnection.on('ReceiveMessage', (message: MessageDto) => {
+      messageCallback(message);
+    });
+  }
+
   cancelConnection(conversationId: string): void {
-    this.hubConnection
-      .invoke('CancelMessageGeneration', conversationId)
-      .catch((err) => console.error('cancel fail', err));
+    this.hubConnection.invoke('CancelMessageGeneration', conversationId);
   }
 }

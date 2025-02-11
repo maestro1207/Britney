@@ -1,53 +1,23 @@
 <mat-card class="container mt-2">
-  <mat-card-header class="text-center">
-    <mat-card-title>Czat</mat-card-title>
-  </mat-card-header>
-
+  <app-chat-header></app-chat-header>
   <mat-card-content class="d-flex flex-column">
-    <div class="d-flex justify-content-center mb-2">
-      <button mat-raised-button color="primary" (click)="createConversation()">
-        Utwórz nową konwersację
-      </button>
-    </div>
-
-    <div *ngIf="conversationId()" class="d-flex flex-column col-12">
-      <p class="text-center text-muted">ID: {{ conversationId() }}</p>
-
-      <div *ngIf="messages().length" class="d-flex flex-column p-2 border rounded " >
-        <div *ngFor="let msg of messages()" 
-             class="d-flex flex-column p-2 mb-2 rounded"
-             [ngClass]="msg.sender === 'Bot' ? ' bg-light' : 'align-self-start bg-secondary text-white'">
-          <p class="mb-1">
-            <strong>{{ msg.sender }} :</strong> {{ msg.content }}
-            <ng-container *ngIf="msg.sender === 'Bot' && msg.rating !== 0">
-              <span 
-                [matBadge]="msg.rating === 2 ? '👍' : (msg.rating === 1 ? '👎' : '')"
-                matBadgeColor="accent"
-                matBadgePosition="after">
-              </span>
-            </ng-container>
-          </p>
-          
-          <div *ngIf="msg.sender === 'Bot'" class="d-flex justify-content-end">
-            <button mat-icon-button (click)="rateMessgae(msg.id, 2)">👍</button>
-            <button mat-icon-button (click)="rateMessgae(msg.id, 1)">👎</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <app-chat-new-conversation
+      (createConversation)="createConversation()"
+    ></app-chat-new-conversation>
+    <app-chat-conversation
+      [conversationId]="conversationId()"
+      [messages]="messages()"
+      (rateMessage)="rateMessage($event.messageId, $event.rating)"
+    >
+    </app-chat-conversation>
   </mat-card-content>
-
-  <mat-card-actions *ngIf="conversationId()" class="d-flex justify-content-center align-items-center gap-2 p-3 mt-2">
-    <mat-form-field class="flex-grow-1">
-      <input matInput placeholder="Wpisz wiadomość..." [ngModel]="messageInput()" (ngModelChange)="messageInput.set($event)" (keyup.enter)="sendMessage()" />
-    </mat-form-field>
-
-    <button mat-raised-button color="accent" *ngIf="!canCancel()" (click)="sendMessage()">
-      Wyślij
-    </button>
-
-    <button mat-raised-button color="warn" *ngIf="canCancel()" (click)="cancelMessage()">
-      Anuluj
-    </button>
-  </mat-card-actions>
+  <app-chat-actions
+    *ngIf="conversationId()"
+    [message]="messageInput()"
+    [canCancel]="canCancel()"
+    (messageChange)="messageInput.set($event)"
+    (sendMessage)="sendMessage()"
+    (cancelMessage)="cancelMessage()"
+  >
+  </app-chat-actions>
 </mat-card>

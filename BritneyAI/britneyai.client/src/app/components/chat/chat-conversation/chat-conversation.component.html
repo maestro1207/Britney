@@ -1,0 +1,7 @@
+<div *ngIf="conversationId" class="d-flex flex-column col-12">
+  <p class="text-center text-muted">ID: {{ conversationId }}</p>
+  <app-chat-messages
+    [messages]="messages"
+    (rateMessage)="onRateMessage($event)"
+  ></app-chat-messages>
+</div>

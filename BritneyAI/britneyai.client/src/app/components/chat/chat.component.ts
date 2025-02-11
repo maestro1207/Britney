@@ -1,14 +1,11 @@
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChatStore } from '../../services/chat.store';
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { MatBadgeModule } from '@angular/material/badge';
-import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatListModule } from '@angular/material/list';
-import { ChatService } from '../../services/chat.service';
-import { MessageDto, SignalrService } from '../../services/signalr.service';
+import { ChatActionsComponent } from './chat-actions/chat-actions.component';
+import { ChatConversationComponent } from './chat-conversation/chat-conversation.component';
+import { ChatHeaderComponent } from './chat-header/chat-header.component';
+import { ChatNewConversationComponent } from './chat-new-conversation/chat-new-conversation.component';
 
 @Component({
   selector: 'app-chat',
@@ -16,98 +13,53 @@ import { MessageDto, SignalrService } from '../../services/signalr.service';
   imports: [
     CommonModule,
     MatCardModule,
-    MatListModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    FormsModule,
-    MatBadgeModule,
+    ChatHeaderComponent,
+    ChatNewConversationComponent,
+    ChatConversationComponent,
+    ChatActionsComponent,
   ],
   templateUrl: './chat.component.html',
-  styleUrl: './chat.component.css',
 })
 export class ChatComponent implements OnInit, OnDestroy {
-  private chatService = inject(ChatService);
-  private signalRService = inject(SignalrService);
+  private chatStore = inject(ChatStore);
 
-  conversationId = signal<string | null>(
-    localStorage.getItem('conversationId')
-  );
-
-  messageInput = signal<string>('');
-  canCancel = signal<boolean>(false);
-  messages = this.signalRService.messages;
+  get conversationId() {
+    return this.chatStore.conversationId;
+  }
+  get messageInput() {
+    return this.chatStore.messageInput;
+  }
+  get canCancel() {
+    return this.chatStore.canCancel;
+  }
+  get messages() {
+    return this.chatStore.messages;
+  }
 
   ngOnInit(): void {
-    this.signalRService.startConnection();
-
-    if (this.conversationId()) {
-      this.fetchMessages();
+    if (this.chatStore.conversationId()) {
+      this.chatStore.loadConversation();
     }
   }
 
-  fetchMessages(): void {
-    this.chatService.getConversation(this.conversationId()!).subscribe({
-      next: (conv) => {
-        const messagesDto: MessageDto[] = conv.messages.map((msg) => ({
-          ...msg,
-          conversationId: conv.id,
-          sender: msg.sender === 0 ? 'User' : 'Bot',
-          rating: msg.rating ?? 0,
-        }));
-        this.messages.set(messagesDto);
-        console.log('this.messages', this.messages());
-      },
-    });
-  }
-
   createConversation(): void {
-    this.cancelMessage();
-    this.chatService.createConversation().subscribe({
-      next: (conv) => {
-        this.conversationId.set(conv.id);
-        localStorage.setItem('conversationId', conv.id);
-
-        this.messages.set([]);
-      },
-    });
+    this.chatStore.createConversation();
   }
+
   sendMessage(): void {
-    if (!this.conversationId() || !this.messageInput().trim()) return;
-    this.canCancel.set(true);
-
-    this.chatService
-      .sendMessage(this.conversationId()!, this.messageInput())
-      .subscribe({
-        next: () => {
-          this.messageInput.set('');
-          this.canCancel.set(false);
-        },
-      });
+    this.chatStore.sendMessage();
+  }
+  rateMessage(messageId: string, rating: number): void {
+    this.chatStore.rateMessage(messageId, rating);
   }
 
-  rateMessgae(messageId: string, rating: number): void {
-    this.messages.update((msgs) =>
-      msgs.map((msg) => {
-        if (msg.id === messageId) {
-          const newRate = msg.rating === rating ? 0 : rating;
-
-          this.chatService.rateMessage(messageId, newRate).subscribe();
-
-          return { ...msg, rating: newRate };
-        }
-        return msg;
-      })
-    );
-  }
-
-  cancelMessage() {
-    this.signalRService.cancelConnection(this.conversationId()!);
+  cancelMessage(): void {
+    this.chatStore.cancelMessage();
   }
 
   ngOnDestroy(): void {
-    if (this.conversationId()) {
-      this.signalRService.cancelConnection(this.conversationId()!);
+    if (this.chatStore.conversationId()) {
+      this.chatStore.cancelMessage();
     }
   }
 }

@@ -1,0 +1,26 @@
+<div
+  class="d-flex flex-column p-2 mb-2 rounded"
+  [ngClass]="
+    message.sender === 'Bot'
+      ? 'bg-light'
+      : 'align-self-start bg-secondary text-white'
+  "
+>
+  <p class="mb-1">
+    <strong>{{ message.sender }} :</strong> {{ message.content }}
+    <ng-container *ngIf="message.sender === 'Bot' && message.rating !== 0">
+      <span
+        [matBadge]="
+          message.rating === 2 ? '👍' : message.rating === 1 ? '👎' : ''
+        "
+        matBadgeColor="accent"
+        matBadgePosition="after"
+      >
+      </span>
+    </ng-container>
+  </p>
+  <div *ngIf="message.sender === 'Bot'" class="d-flex justify-content-end">
+    <button mat-icon-button (click)="rateMessage(2)">👍</button>
+    <button mat-icon-button (click)="rateMessage(1)">👎</button>
+  </div>
+</div>
