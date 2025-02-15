@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { effect, Injectable, signal } from '@angular/core';
 import { ChatService } from './chat.service';
 import { MessageDto, SignalrService } from './signalr.service';
 
@@ -18,20 +18,13 @@ export class ChatStore {
     private signalRService: SignalrService
   ) {
     this.signalRService.startConnection();
-    this.signalRService.initMessageHandler((message: MessageDto) => {
-      if (message.conversationId !== this.conversationId()) {
-        return;
-      }
-      this.messages.update((currentMessages) => {
-        const index = currentMessages.findIndex((m) => m.id === message.id);
-        if (index > -1) {
-          return currentMessages.map((m, i) =>
-            i === index ? { ...m, ...message } : m
-          );
-        } else {
-          return [...currentMessages, message];
-        }
-      });
+
+    effect(() => {
+      const allMessages = this.signalRService.messages();
+      const filteredMessages = allMessages.filter(
+        (msg) => msg.conversationId === this.conversationId()
+      );
+      this.messages.set(filteredMessages);
     });
   }
 
@@ -46,7 +39,7 @@ export class ChatStore {
             sender: msg.sender === 0 ? 'User' : 'Bot',
             rating: msg.rating ?? 0,
           }));
-          this.messages.set(messagesDto);
+          this.signalRService.messages.set(messagesDto);
         },
       });
     }
@@ -58,7 +51,7 @@ export class ChatStore {
       next: (conv) => {
         this.conversationId.set(conv.id);
         localStorage.setItem('conversationId', conv.id);
-        this.messages.set([]);
+        this.signalRService.messages.set([]);
       },
     });
   }
@@ -80,7 +73,7 @@ export class ChatStore {
   }
 
   rateMessage(messageId: string, rating: number): void {
-    this.messages.update((msgs) =>
+    this.signalRService.messages.update((msgs) =>
       msgs.map((msg) => {
         if (msg.id === messageId) {
           const newRating = msg.rating === rating ? 0 : rating;

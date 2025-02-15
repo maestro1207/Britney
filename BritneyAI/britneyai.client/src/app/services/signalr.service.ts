@@ -24,39 +24,20 @@ export class SignalrService {
       .withAutomaticReconnect()
       .build();
 
-    this.hubConnection
-      .start()
-      .then(() => {})
-      .catch(() => {});
-
+    this.hubConnection.start().then().catch();
     this.hubConnection.on('ReceiveMessage', (message: MessageDto) => {
-      if (message.conversationId !== localStorage.getItem('conversationId')) {
-        return;
-      }
-
-      this.updateMessageList(message);
-    });
-  }
-
-  private updateMessageList(newMessage: MessageDto): void {
-    this.messages.update((messages) => {
-      const existingMessageIndex = messages.findIndex(
-        (m) => m.id === newMessage.id
-      );
-
-      if (existingMessageIndex !== -1) {
-        return messages.map((m, i) =>
-          i === existingMessageIndex ? { ...m, content: newMessage.content } : m
+      this.messages.update((messages) => {
+        const existingMessageIndex = messages.findIndex(
+          (m) => m.id === message.id
         );
-      } else {
-        return [...messages, newMessage];
-      }
-    });
-  }
-
-  initMessageHandler(messageCallback: (message: MessageDto) => void): void {
-    this.hubConnection.on('ReceiveMessage', (message: MessageDto) => {
-      messageCallback(message);
+        if (existingMessageIndex !== -1) {
+          return messages.map((m, i) =>
+            i === existingMessageIndex ? { ...m, content: message.content } : m
+          );
+        } else {
+          return [...messages, message];
+        }
+      });
     });
   }
 
