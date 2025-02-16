@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ChatActionsComponent } from './chat-actions.component';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('ChatActionsComponent', () => {
   let component: ChatActionsComponent;
@@ -8,9 +9,8 @@ describe('ChatActionsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ChatActionsComponent]
-    })
-    .compileComponents();
+      imports: [NoopAnimationsModule, ChatActionsComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ChatActionsComponent);
     component = fixture.componentInstance;

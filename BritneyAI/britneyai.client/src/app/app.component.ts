@@ -6,7 +6,6 @@ import { ChatComponent } from './components/chat/chat.component';
   templateUrl: './app.component.html',
   standalone: true,
   imports: [ChatComponent],
-  styleUrl: './app.component.css',
 })
 export class AppComponent {
   title = 'britneyai.client';
